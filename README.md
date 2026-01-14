@@ -5,6 +5,7 @@ Protein Conformation Generation via replication of Mansoor, Baker et al., 2024. 
 ```
 git clone https://github.com/Pratham2405/VAE_RF_Conf_Gen.git
 cd VAE_RF_Conf_Gen
+cd scripts
 ```
 - Create and activate a virtual environment. This creates a folder `vae_env` in the repo's directory which will contain your venv executables. In case you can't find it, use `find "$HOME" -name "activate" -type f`. This shows the path of the venv directory. To activate it, simply copy the path and give the command: `source "absolute/path/to/your/venv/bin/activate"`:
 ```
