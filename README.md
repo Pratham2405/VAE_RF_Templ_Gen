@@ -1,9 +1,9 @@
-# VAE_RF_Conf_Gen
+# VAE_RF_Templ_Gen
 Protein Conformation Generation via replication of Mansoor, Baker et al., 2024. Using Vanilla VAE and RosettaFold Integration
 ## Steps of the Workflow:
 - Clone this repository:
 ```
-git clone https://github.com/Pratham2405/VAE_RF_Conf_Gen.git
+git clone https://github.com/Pratham2405/VAE_RF_Templ_Gen.git
 cd VAE_RF_Conf_Gen
 cd scripts
 ```
