@@ -178,15 +178,35 @@ if __name__ == "__main__":
     else:
         raise ValueError("Must provide either --pdb_file or --pdb_folder")
     
-    torch.save(tensor_batch, args.output_train)
-    with open(args.pdb_name_file, "wb") as f:
-        pickle.dump(pdb_names, f)
-    
-    print(f"Saved {tensor_batch.shape[0]} structures to {args.output_train}")
 
-    # l = output_file
-    # for _ in range(No. of files in train data set//4):
-    #   test_file =[]
-    #   element = l[torch.rand_perm(1, no. of files in train data set)]
-    #   with open file as 'wb':
-    #       write element into test file
+# Split into train and test sets (75/25 split)
+    num_structures = tensor_batch.shape[0]
+    num_test = num_structures // 4  # 25% for test
+
+    # Random permutation for splitting
+    indices = torch.randperm(num_structures)
+    test_indices = indices[:num_test]
+    train_indices = indices[num_test:]
+
+    # Split the tensors
+    test_batch = tensor_batch[test_indices]
+    train_batch = tensor_batch[train_indices]
+
+    # Split the PDB names
+    test_names = [pdb_names[i] for i in test_indices.tolist()]
+    train_names = [pdb_names[i] for i in train_indices.tolist()]
+
+    # Save training data
+    torch.save(train_batch, args.output_train)
+    with open(args.pdb_name_file.replace('.pkl', '_train.pkl'), "wb") as f:
+        pickle.dump(train_names, f)
+
+    # Save test data
+    torch.save(test_batch, args.output_test)
+    with open(args.pdb_name_file.replace('.pkl', '_test.pkl'), "wb") as f:
+        pickle.dump(test_names, f)
+
+    print(f"Split {num_structures} structures into:")
+    print(f"  Training: {len(train_indices)} structures -> {args.output_train}")
+    print(f"  Test: {len(test_indices)} structures -> {args.output_test}")
+        
