@@ -144,10 +144,17 @@ def parse_arguments():
     )
     
     parser.add_argument(
-        "--output_file",
+        "--output_train",
         type=str,
         default="xyz_training.pt",
-        help="Output tensor file"
+        help="Output tensor training file"
+    )
+
+    parser.add_argument(
+        "--output_test",
+        type=str,
+        default="xyz_test.pt",
+        help="Output tensor test file"
     )
     
     parser.add_argument(
@@ -171,8 +178,15 @@ if __name__ == "__main__":
     else:
         raise ValueError("Must provide either --pdb_file or --pdb_folder")
     
-    torch.save(tensor_batch, args.output_file)
+    torch.save(tensor_batch, args.output_train)
     with open(args.pdb_name_file, "wb") as f:
         pickle.dump(pdb_names, f)
     
-    print(f"Saved {tensor_batch.shape[0]} structures to {args.output_file}")
+    print(f"Saved {tensor_batch.shape[0]} structures to {args.output_train}")
+
+    # l = output_file
+    # for _ in range(No. of files in train data set//4):
+    #   test_file =[]
+    #   element = l[torch.rand_perm(1, no. of files in train data set)]
+    #   with open file as 'wb':
+    #       write element into test file
