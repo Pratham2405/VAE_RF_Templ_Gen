@@ -16,8 +16,13 @@ source vae_env/bin/activate
 ```
 pip install -r requirements.txt
 ```
-- Dataset Download: Choose the dataset from the ATLAS database and split into individual `.pdb` files. Choose different folders for training and test `.pdb` folders(a ratio of 4:1 is considered standard).
-- Run `python3 Prep_PDB42DTF.py`: this script extracts the 3D coordinates of the backbone atoms of the `.pdb` files in a folder and stacks them in a torch tensor with `torch.save`. The script splits the input pdb file or folder into training and test data points in two separate files:
+- Dataset Download: Choose the dataset from the ATLAS database and convert the trajectory file into a single `.pdb` file:
+```
+gmx trjconv -s 2erl_A_DataSource/2erl_A_prod_R2.tpr \
+  -f 2erl_A_DataSource/2erl_A_prod_R2_fit.xtc \
+  -o all_pdb_structures.pdb
+```
+- Run `python3 Prep_PDB42DTF.py`: This script extracts the 3D coordinates of the backbone atoms of the `.pdb` files in a folder and stacks them in a torch tensor with `torch.save`. The script splits the input pdb file or folder into training and test data points in two separate files:
 ```
 python Prep_PDB42DTF.py \
   --pdb_file all_structures.pdb \
