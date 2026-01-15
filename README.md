@@ -17,28 +17,43 @@ source vae_env/bin/activate
 pip install -r requirements.txt
 ```
 - Dataset Download: Choose the dataset from the ATLAS database and split into individual `.pdb` files. Choose different folders for training and test `.pdb` folders(a ratio of 4:1 is considered standard).
-- Run `python3 Prep_PDB42DTF.py`: this script extracts the 3D coordinates of the backbone atoms of the `.pdb` files in a folder and stacks them in a torch tensor with `torch.save`(repeat this for both training and test folders):
+- Run `python3 Prep_PDB42DTF.py`: this script extracts the 3D coordinates of the backbone atoms of the `.pdb` files in a folder and stacks them in a torch tensor with `torch.save`. The script splits the input pdb file or folder into training and test data points in two separate files:
 ```
-python3 Prep_PDB42DTF.py \
-  --pdb_folder /path/to/pdb_folder \
+python Prep_PDB42DTF.py \
+  --pdb_file all_structures.pdb \
   --max_res 40 \
-  --output_file xyz_training.pt \
+  --output_train xyz_training.pt \
+  --output_test xyz_test.pt \
   --pdb_name_file pdb_files.pkl
 ```
-- Generate c6d + mask from xyz tensor:
+- Generate c6d + mask from xyz tensor. The tensor :
+
+Generate c6d features for training (calculates stats):
 ```
-python -c "import torch; from RF_2DTF_Gen import xyz_to_c6d, PARAMS; \
-xyz = torch.load('xyz_training.pt'); \
-c6d, mask = xyz_to_c6d(xyz); \
-torch.save({'c6d': c6d, 'mask': mask, 'params': PARAMS}, 'train_c6d_with_mask.pt')"
+python RF_2DTF_Gen.py \
+  --input_xyz xyz_training.pt \
+  --output_c6d train_c6d.pt \
+  --stats_file norm_stats.pt
 ```
-Repeat the above two steps for the test folder as well. Remember to rename the output file as `xyz_test.pt` and so on downstream. `c6d_sanity_check.py` prints the number of structures in the tensor for verifying that the right file has been prepared.
+Generate c6d features for test (uses training stats)
+```
+  python RF_2DTF_Gen.py \
+  --input_xyz xyz_test.pt \
+  --output_c6d test_c6d.pt \
+  --stats_file norm_stats.pt
+```
+PDB structures sometimes have artifacts which can make the losses explode or vanish(exp. component in KL Divergence component in VAE loss). Run `c6d_sanity_check.py`for training data cleaning:
+```
+python c6d_sanity_check.py --input_c6d train_c6d.pt
+python c6d_sanity_check.py --input_c6d test_c6d.pt
+```
+`c6d_sanity_check.py` prints the number of structures in the tensor for verifying that the right file has been prepared.
 
 - Train the VAE. For a more efficient fine-tuning experience, you can choose the following arguments in the script:
 ```
 python main.py \
   --protein_length 40 \
-  --training_data train_c6d_with_mask.pt \
+  --training_data train_c6d.pt \
   --batch_size 32 \
   --epochs 50 \
   --learning_rate 1e-3 \
@@ -52,4 +67,27 @@ python main.py \
 ```
 - The output weigths will be saved to `vae_weights.pth`. You can choose otherwise. The values chosen for the above arguments are the default values except for `--protein_length` and `training_data` which are required fields. 
 - A `vae_ckpt.pt` checkpoint file will be saved for storing the training parameter of this run. Tag the ckpt file for identification to avoid confusion in `main.py`. The new ckpt file created in a new training instance would replace the previous one so you would not have a record of the older parameters.
-- The sampling/evaluation script, `sampling.py` offers you a choice between prior and posterior sampling. Both sampling options lead to a histogram for comparing the distributions of the 4 channels and reconstruction loss between the generated samples and the test dataset or the training dataset in the case of prior sampling.
+- The sampling/evaluation script, `sampling.py` offers you a choice between prior and posterior sampling. Both sampling options lead to a histogram for comparing the distributions of the 4 channels and reconstruction loss between the generated samples and the test dataset or the training dataset in the case of prior sampling:
+Sample from prior (generate novel structures):
+```
+python Sampler.py \
+  --sampling_type prior \
+  --vae_weights vae_weights.pth \
+  --training_data train_c6d.pt \
+  --histogram_output histogram_prior.png \
+  --num_samples 100 \
+  --output_file prior_samples.pt \
+  --device cuda
+  ```
+Sample from posterior (reconstruct test data):
+```
+python Sampler.py \
+  --sampling_type posterior \
+  --vae_weights vae_weights.pth \
+  --training_data train_c6d.pt \
+  --test_batch test_c6d.pt \
+  --histogram_output histogram_posterior.png \
+  --num_samples 50 \
+  --output_file posterior_samples.pt \
+  --device cuda
+```
