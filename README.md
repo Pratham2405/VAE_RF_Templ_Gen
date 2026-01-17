@@ -37,15 +37,13 @@ Generate c6d features for training (calculates stats):
 ```
 python RF_2DTF_Gen.py \
   --input_xyz xyz_training.pt \
-  --output_c6d train_c6d.pt \
-  --stats_file norm_stats.pt
+  --output_c6d train_c6d.pt
 ```
 Generate c6d features for test (uses training stats)
 ```
   python RF_2DTF_Gen.py \
   --input_xyz xyz_test.pt \
-  --output_c6d test_c6d.pt \
-  --stats_file norm_stats.pt
+  --output_c6d test_c6d.pt
 ```
 PDB structures sometimes have artifacts which can make the losses explode or vanish(exp. component in KL Divergence component in VAE loss). Run `c6d_sanity_check.py`for training data cleaning:
 ```
