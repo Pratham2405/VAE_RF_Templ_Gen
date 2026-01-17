@@ -307,147 +307,41 @@ def xyz_to_c6d(xyz, params=PARAMS):
     
     return c6d, mask.to(torch.bool)
 
-def normalize_c6d(c6d_tensor, stats=None):
-    """Normalize each channel independently
-    
-    Parameters
-    ----------
-    c6d_tensor : pytorch tensor of shape [batch,nres,nres,4]
-                 Input c6d features
-    stats : dict or None
-            If None, calculates statistics from data and returns them
-            If provided, uses these statistics for normalization
-    
-    Returns
-    -------
-    normalized : pytorch tensor of shape [batch,nres,nres,4]
-                 Normalized c6d features
-    stats : dict (only if input stats was None)
-            Dictionary with 'mean' and 'std' lists for each channel
-    """
-    normalized = torch.zeros_like(c6d_tensor)
-    
-    # Calculate or use provided stats
-    if stats is None:
-        stats = {'mean': [], 'std': []}
-        calculate_stats = True
-    else:
-        calculate_stats = False
-    
-    # Per-channel normalization
-    for channel in range(4):
-        data = c6d_tensor[..., channel]
-        
-        if calculate_stats:
-            # For distance (channel 0), handle 999.9 sentinel values
-            if channel == 0:
-                mask = data < 999.0
-                valid_data = data[mask]
-                mean = valid_data.mean()
-                std = valid_data.std()
-            else:
-                # Angles: simple standardization
-                mean = data.mean()
-                std = data.std()
-            
-            stats['mean'].append(mean.item())
-            stats['std'].append(std.item())
-        else:
-            # Use provided statistics
-            mean = stats['mean'][channel]
-            std = stats['std'][channel]
-        
-        # Normalize
-        normalized[..., channel] = (data - mean) / (std + 1e-8)  # Add epsilon for stability
-        
-        # For channel 0, keep sentinel values distinguishable
-        if channel == 0:
-            sentinel_mask = data >= 999.0
-            normalized[..., channel][sentinel_mask] = 10.0  # Large normalized value
-    
-    if calculate_stats:
-        return normalized, stats
-    else:
-        return normalized
-
 def c6d_parser():
-    parser = ap.ArgumentParser(
-        description="Convert PDB xyz to normalized c6d with mask. "
-                    "For training data, calculates and saves normalization stats. "
-                    "For test data, applies training normalization stats."
-    )
-    
+    parser = ap.ArgumentParser(description="Convert PDB xyz to c6d with mask")
+
     parser.add_argument(
         "--input_xyz",
         type=str,
         required=True,
         help="Path to input .pt file containing xyz tensor"
     )
-    
+
     parser.add_argument(
         "--output_c6d",
         type=str,
         required=True,
-        help="Path to output .pt file to save normalized c6d and mask tensors"
+        help="Path to output .pt file to save c6d and mask tensors"
     )
-    
-    parser.add_argument(
-        "--stats_file",
-        type=str,
-        default=None,
-        help="Path to normalization stats file. "
-             "If not provided or doesn't exist: calculates stats from data and saves them (TRAINING mode). "
-             "If provided and exists: loads and applies these stats (TEST mode)."
-    )
-    
+
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     args = c6d_parser()
-    
+
     print(f"Loading xyz data from {args.input_xyz}...")
     xyz = torch.load(args.input_xyz)
     print(f"  Loaded {xyz.shape[0]} structures with {xyz.shape[1]} residues")
-    
+
     print("Converting xyz to c6d...")
     c6d, mask = xyz_to_c6d(xyz)
     print(f"  C6D shape: {c6d.shape}")
-    
-    # Determine mode: training (calculate stats) or test (use existing stats)
-    if args.stats_file and os.path.exists(args.stats_file):
-        # TEST MODE: Use existing stats
-        print(f"Loading normalization stats from {args.stats_file}...")
-        stats = torch.load(args.stats_file)
-        print(f"  Using training statistics:")
-        for i in range(4):
-            print(f"    Channel {i}: mean={stats['mean'][i]:.4f}, std={stats['std'][i]:.4f}")
-        
-        c6d_normalized = normalize_c6d(c6d, stats=stats)
-        print("  Applied normalization using training statistics")
-        
-    else:
-        # TRAINING MODE: Calculate and save stats
-        print("Calculating normalization statistics from data...")
-        c6d_normalized, stats = normalize_c6d(c6d)
-        print(f"  Computed statistics:")
-        for i in range(4):
-            print(f"    Channel {i}: mean={stats['mean'][i]:.4f}, std={stats['std'][i]:.4f}")
-        
-        # Save stats if path provided
-        if args.stats_file:
-            torch.save(stats, args.stats_file)
-            print(f"  Saved normalization stats to {args.stats_file}")
-    
-    # Save normalized data
-    torch.save({"c6d": c6d_normalized, "mask": mask}, args.output_c6d)
-    print(f"Saved normalized c6d and mask to {args.output_c6d}")
+
+    # Save c6d and mask without normalization
+    torch.save({"c6d": c6d, "mask": mask}, args.output_c6d)
+    print(f"Saved c6d and mask to {args.output_c6d}")
     print("Done!")
 
-# Usage Examples:
-# 
-# TRAINING DATA (calculate stats):
-#   python RF_2DTF_Gen.py --input_xyz train_xyz.pt --output_c6d train_c6d_norm.pt --stats_file norm_stats.pt
-#
-# TEST DATA (use training stats):
-#   python RF_2DTF_Gen.py --input_xyz test_xyz.pt --output_c6d test_c6d_norm.pt --stats_file norm_stats.pt
-
+# Usage Example:
+# python RF_2DTF_Gen.py --input_xyz xyz_data.pt --output_c6d output_c6d.pt
