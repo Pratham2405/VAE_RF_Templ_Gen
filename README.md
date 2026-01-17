@@ -56,19 +56,20 @@ python c6d_sanity_check.py --input_c6d test_c6d.pt
 
 - Train the VAE. For a more efficient fine-tuning experience, you can choose the following arguments in the script:
 ```
-python main.py \
+python3 main.py \
   --protein_length 40 \
-  --training_data train_c6d.pt \
-  --batch_size 32 \
-  --epochs 50 \
-  --learning_rate 1e-3 \
-  --kl_div_weight 1e-3 \
-  --feature_dim 64 \
-  --latent_dim 256 \
+  --training_data /path/to/train_c6d_with_mask.pt \
+  --batch_size 8 \
+  --epochs 5 \
+  --learning_rate 5e-4 \
+  --kl_div_weight 1e-2 \
+  --feature_dim 32 \
+  --latent_dim 64 \
   --num_workers 4 \
-  --pin_memory True \
-  --log_every 50 \
-  --output_weights vae_weights.pth
+  --log_every 10 \
+  --output_weights vae_c6d_weights.pth \
+  --channel_weights 0.1 0.3 0.3 0.3
+
 ```
 - The output weigths will be saved to `vae_weights.pth`. You can choose otherwise. The values chosen for the above arguments are the default values except for `--protein_length` and `training_data` which are required fields. 
 - A `vae_ckpt.pt` checkpoint file will be saved for storing the training parameter of this run. Tag the ckpt file for identification to avoid confusion in `main.py`. The new ckpt file created in a new training instance would replace the previous one so you would not have a record of the older parameters.
