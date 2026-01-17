@@ -1,13 +1,12 @@
 # main.py
+
 import os
 import argparse as ap
-
 import torch
 from VAE_model import VanillaVAE
 from vae_loss import vae_loss
 from dataloader import build_train_loader
 from train import train_vanilla_vae
-
 
 def parse_args():
     parser = ap.ArgumentParser(description="2D template VAE training")
@@ -18,6 +17,7 @@ def parse_args():
         required=True,
         help="Length of the target protein(number of residues).",
     )
+
     parser.add_argument(
         "--training_data",
         type=str,
@@ -59,7 +59,7 @@ def parse_args():
         default="vae_weights.pth",
         help="Path to save trained VAE weights",
     )
-    
+
     parser.add_argument(
         "--log_every",
         type=int,
@@ -87,15 +87,26 @@ def parse_args():
         default=True,
         help="Pin Memory",
     )
-    
+
     parser.add_argument(
         "--num_workers",
         type=int,
         default=4,
         help="Num Workers",
     )
-    return parser.parse_args()
 
+    parser.add_argument(
+        "--channel_weights",
+        type=float,
+        nargs=4,
+        default=None,
+        metavar=('W_DIST', 'W_OMEGA', 'W_THETA', 'W_PHI'),
+        help="Per-channel loss weights for [distance, omega, theta, phi]. "
+             "Example: --channel_weights 0.1 0.3 0.3 0.3 to emphasize angles. "
+             "Default: None (equal weights [0.25, 0.25, 0.25, 0.25])",
+    )
+
+    return parser.parse_args()
 
 if __name__ == "__main__":
     args = parse_args()
@@ -112,16 +123,38 @@ if __name__ == "__main__":
     latent_dim = args.latent_dim
     feature_dim = args.feature_dim
     log_every = args.log_every
+    channel_weights = args.channel_weights  
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    # Print configuration
+    print("=" * 60)
+    print("TRAINING CONFIGURATION")
+    print("=" * 60)
+    print(f"Protein length: {protein_length}")
+    print(f"Training data: {training_data}")
+    print(f"Device: {device}")
+    print(f"Batch size: {batch_size}")
+    print(f"Epochs: {epochs}")
+    print(f"Learning rate: {learning_rate}")
+    print(f"KL weight: {kl_w}")
+    print(f"Feature dim: {feature_dim}")
+    print(f"Latent dim: {latent_dim}")
+    if channel_weights is not None:
+        print(f"Channel weights: {channel_weights}")
+        print(f"  Distance: {channel_weights[0]:.3f}")
+        print(f"  Omega:    {channel_weights[1]:.3f}")
+        print(f"  Theta:    {channel_weights[2]:.3f}")
+        print(f"  Phi:      {channel_weights[3]:.3f}")
+    else:
+        print(f"Channel weights: Equal (0.25 each)")
+    print("=" * 60)
 
     # DataLoader built from the .pt data (c6d + mask)
     train_loader = build_train_loader(training_data, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory)
 
-    # Model: 4 channels (dist, omega, theta, phi), 40x40 templates
+    # Model: 4 channels (dist, omega, theta, phi)
     vae = VanillaVAE(feature_dim=feature_dim, input_size=protein_length, latent_dim=latent_dim, input_channels=4)
-
-
 
     # Train
     vae = train_vanilla_vae(
@@ -133,37 +166,26 @@ if __name__ == "__main__":
         lr=learning_rate,
         rec_w=1.0,
         kl_w=kl_w,
-        log_every=log_every
+        log_every=log_every,
+        channel_weights=channel_weights,  
     )
 
     # Save ckpt and weights
     torch.save(vae.state_dict(), output_weights)
     abs_output_weights = os.path.realpath(output_weights)
     print(f"Model weights saved to {abs_output_weights}")
+
     ckpt = {
-    "config": {
-        "latent_dim": latent_dim,
-        "feature_dim": feature_dim,
-        "protein_length": protein_length,
-        "input_channels": 4,
-        "output_weights": output_weights
-    },
-    "epochs": epochs,
+        "config": {
+            "latent_dim": latent_dim,
+            "feature_dim": feature_dim,
+            "protein_length": protein_length,
+            "input_channels": 4,
+            "output_weights": output_weights,
+            "channel_weights": channel_weights,  
+        },
+        "epochs": epochs,
     }
+
     torch.save(ckpt, "vae_ckpt.pt")
-
-# python3 main.py \
-#   --protein_length 40 \
-#   --training_data /path/to/train_c6d_with_mask.pt \
-#   --batch_size 8 \
-#   --epochs 5 \
-#   --learning_rate 5e-4 \
-#   --kl_div_weight 1e-2 \
-#   --feature_dim 32 \
-#   --latent_dim 64 \
-#   --num_workers 4 \
-#   --pin_memory True \
-#   --log_every 10 \
-#   --output_weights vae_c6d_weights.pth
-
-
+    print("Checkpoint saved to vae_ckpt.pt")
