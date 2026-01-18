@@ -25,7 +25,7 @@ gmx trjconv -s 2erl_A_DataSource/2erl_A_prod_R2.tpr \
 - Run `python3 Prep_PDB42DTF.py`: This script extracts the 3D coordinates of the backbone atoms of the `.pdb` files in a folder and stacks them in a torch tensor with `torch.save`. The script splits the input pdb file or folder into training and test data points in two separate files:
 ```
 python Prep_PDB42DTF.py \
-  --pdb_file all_structures.pdb \
+  --pdb_file all_pdb_structures.pdb \
   --max_res 40 \
   --output_train xyz_training.pt \
   --output_test xyz_test.pt \
@@ -58,14 +58,14 @@ python main.py \
   --protein_length 40 \
   --training_data train_c6d.pt \
   --batch_size 32 \
-  --epochs 50 \
+  --epochs 500 \
   --learning_rate 1e-3 \
   --kl_div_weight 1e-3 \
   --feature_dim 64 \
   --latent_dim 256 \
   --num_workers 4 \
   --pin_memory True \
-  --log_every 50 \
+  --log_every 250 \
   --output_weights vae_weights.pth
   --channel_weights 0.1 0.3 0.3 0.3
 
