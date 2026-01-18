@@ -69,4 +69,4 @@ def train_vanilla_vae(
 
             step += 1
 
-    return
+    return vae
