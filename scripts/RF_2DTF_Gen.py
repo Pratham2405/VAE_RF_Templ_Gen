@@ -1,4 +1,4 @@
-# import torch
+e# import torch
 # import argparse as ap
 
 # PARAMS = {
@@ -299,13 +299,13 @@ def xyz_to_c6d(xyz, params=PARAMS):
     c6d[b,i,j,1] = get_dih(Ca[b,i], Cb[b,i], Cb[b,j], Ca[b,j])
     c6d[b,i,j,2] = get_dih(N[b,i], Ca[b,i], Cb[b,i], Cb[b,j])
     c6d[b,i,j,3] = get_ang(Ca[b,i], Cb[b,i], Cb[b,j])
+    distance_max = c6d[...,0] >= params['DMAX']
+    c6d[distance_max, 0] = 999.9
     
-    c6d[c6d[...,0] >= params['DMAX']] = 999.9
+    mask = torch.zeros((batch, nres, nres), dtype=torch.bool, device=xyz.device)
+    mask[b,i,j] = True
     
-    mask = torch.zeros((batch, nres, nres), dtype=xyz.dtype, device=xyz.device)
-    mask[b,i,j] = 1.0
-    
-    return c6d, mask.to(torch.bool)
+    return c6d, mask
 
 def c6d_parser():
     parser = ap.ArgumentParser(description="Convert PDB xyz to c6d with mask")
