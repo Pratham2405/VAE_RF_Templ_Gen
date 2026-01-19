@@ -1,5 +1,3 @@
-
-c6d_sanity_check.py
 import torch
 import argparse as ap
 import numpy as np
