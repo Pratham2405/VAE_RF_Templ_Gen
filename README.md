@@ -58,15 +58,15 @@ python main.py \
   --protein_length 40 \
   --training_data train_c6d.pt \
   --batch_size 32 \
-  --epochs 500 \
+  --epochs 350 \
   --learning_rate 1e-3 \
-  --kl_div_weight 1e-3 \
+  --kl_div_weight 5e-1 \
   --feature_dim 64 \
   --latent_dim 256 \
   --num_workers 4 \
   --pin_memory True \
   --log_every 250 \
-  --output_weights vae_weights.pth
+  --output_weights vae_weights_350_00.pth \
   --channel_weights 0.1 0.3 0.3 0.3
 
 ```
