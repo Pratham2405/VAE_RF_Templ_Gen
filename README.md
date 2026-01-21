@@ -96,3 +96,5 @@ python Sampler.py \
   --output_file posterior_samples.pt \
   --device cuda
 ```
+After running the sampling scripts, you get posterior and prior histograms. You also get the respective samples saved in a `.pt` file:
+[Image of the prior and posterior histograms].
