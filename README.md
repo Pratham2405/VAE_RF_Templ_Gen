@@ -71,7 +71,7 @@ python main.py \
 
 ```
 - The output weigths will be saved to `vae_weights.pth`. You can choose otherwise. The values chosen for the above arguments are the default values except for `--protein_length` and `training_data` which are required fields.
-![Epoch_Stats](VAE_RF_Templ_Gen/Images/epoch_stats.png "Epoch Statistics at the end of training.")
+![Epoch_Stats](Images/epoch_stats.png "Epoch Statistics at the end of training.")
 - A `vae_ckpt.pt` checkpoint file will be saved for storing the training parameter of this run. Tag the ckpt file for identification to avoid confusion in `main.py`. The new ckpt file created in a new training instance would replace the previous one so you would not have a record of the older parameters.
 - The sampling/evaluation script, `sampling.py` offers you a choice between prior and posterior sampling. Both sampling options lead to a histogram for comparing the distributions of the 4 channels and reconstruction loss between the generated samples and the test dataset or the training dataset in the case of prior sampling:
 Sample from prior (generate novel structures):
@@ -98,5 +98,5 @@ python Sampler.py \
   --device cuda
 ```
 After running the sampling scripts, you get posterior and prior histograms. You also get the respective samples saved in a `.pt` file:
-![Test_Histogram](VAE_RF_Templ_Gen/Images/histogram_posterior.png "Posterior Histogram for the Test dataset.")
-![Loss Stats](VAE_RF_Templ_Gen/Images/loss_stats.png "Loss Statistics for the Test dataset.")
+![Test_Histogram](Images/histogram_posterior.png "Posterior Histogram for the Test dataset.")
+![Loss Stats](Images/loss_stats.png "Loss Statistics for the Test dataset.")
