@@ -104,3 +104,6 @@ python Sampler.py \
 After running the sampling scripts, you get posterior and prior histograms. You also get the respective samples saved in a `.pt` file:
 ![Test_Histogram](Images/histogram_posterior.png "Posterior Histogram for the Test dataset.")
 ![Loss Stats](Images/loss_stats.png "Loss Statistics for the Test dataset.")
+
+## References:
+1. Mansoor, S.; Baek, M.; Park, H.; Lee, G. R.; Baker, D. Protein Ensemble Generation Through Variational Autoencoder Latent Space Sampling. J. Chem. Theory Comput. 2024, 20 (7), 2689–2695. DOI: 10.1021/acs.jctc.3c01057
