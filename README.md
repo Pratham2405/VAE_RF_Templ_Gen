@@ -1,5 +1,9 @@
 # VAE_RF_Templ_Gen
-Protein Conformation Generation via replication of Mansoor, Baker et al., 2024. Using Vanilla VAE and RosettaFold Integration
+Protein Conformation Generation via replication of Mansoor, Baker et al., 2024[1]. Using Vanilla VAE and RosettaFold Integration.
+## Utility of this Repository
+Recent breakthroughs in protein structure prediction have enabled us to predict the structure of proteins without any resolved experimental PDB structure(ab initio folding) utlising evolutionary information through MSA. However, these protein prediction pipelines have been trained on X-ray crystallographic structures of these proteins, bound to have steric hinderances which can only be computationally resolved via MDsim minimisation(a behaviour which is much closer to reality). This shortcoming limit the predictions to a subset of the conformational space which a protein usually explores while carrying out its functions.
+This article[1] trained a lightweight VAE for learning the pairwise 4D features which are used by Rosettafold as an intermediate step before 3D reconstruction of the structure. The authors chose KRAS because of its dynamic nature and abundance of MD data in different states(primarily GTP-bound and GDP-bound). The result was the generation of structures of the ligand-bound states when only the apo structures were given as training dataset[1]. 
+This repository provides the working code(not provided by the authors) for the replication of their results and an attempt to democraticise GenAI workflows for protein dynamics analysis. At their best, workflows like this can potentially provide us with MD trajectory snapshots much quicker and with much less compute requirements than tools like AMBER and GROMACS.
 ## Steps of the Workflow:
 - Clone this repository:
 ```
