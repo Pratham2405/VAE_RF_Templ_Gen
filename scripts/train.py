@@ -53,7 +53,7 @@ def train_vanilla_vae(
                 mask=mask, 
                 rec_w=rec_w, 
                 kl_w=kl_w,
-                channel_weights=channel_weights  # NEW: pass channel weights
+                channel_weights=channel_weights 
             )
 
             # Backward + update
